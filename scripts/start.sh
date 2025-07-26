@@ -1,5 +1,11 @@
 #!/bin/bash
 
-cd /home/ec2-user/your-app
+cd /home/ubuntu
 
-node dist/main.js &
+. ./.env
+
+cd /home/ubuntu/server/app
+
+pm2 delete all
+
+pm2 start dist/src/main.js --name seolim-server

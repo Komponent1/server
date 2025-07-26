@@ -10,32 +10,50 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # 코드 내려받기
     - name: Checkout code
       uses: actions/checkout@v3
 
+    # Node 환경 설치
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
         node-version: '20'
 
-    - name: Set up pnpm
-      run: npm install -g pnpm
-
-    - name: Build project
-      run: pnpm run build
+    # 의존성 설치
+    - name: Install dependencies
+      run: npm install
       working-directory: ./app
 
+    # 빌드
+    - name: Build project
+      run: npm run build
+      working-directory: ./app
+    
+    # 빌드 파일 압축
     - name: Zip deployment package
       run: |
         mkdir deploy
-        cp -r app/dist/ scripts/ appspec.yml deploy/
+        cp -r app/ scripts/ appspec.yml deploy/
         cd deploy && zip -r ../deploy.zip .
 
-    - name: Upload to S3
-      uses: aws-actions/aws-s3-upload@v1
+    # aws 인증
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ap-northeast-2
-        source: "deploy.zip"
-        destination: "s3://your-s3-bucket-name/your-app/deploy.zip"
+
+    # S3 배포
+    - name: Upload s3
+      run: |
+        aws s3 cp deploy.zip s3://seolim-s3
+    
+    - name: Deploy to EC2
+      run: |
+        aws deploy create-deployment \
+          --application-name seolim-server-deploy \
+          --deployment-group-name seolim-server-deploy-group \
+          --deployment-config-name CodeDeployDefault.OneAtATime \
+          --s3-location bucket=seolim-s3,key=deploy.zip,bundleType=zip
