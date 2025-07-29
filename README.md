@@ -7,10 +7,10 @@
 
 ### 아키텍처
 
-![img]()
+![img](https://raw.githubusercontent.com/Komponent1/server/refs/heads/master/etc/Blank%20diagram.png)
 
 ### 로그
 
-7.28 배포 시스템 구축
+**25.7.28** 배포 시스템 구축
 
-5.21 서배 배포
+**25.5.21** 서배 배포
