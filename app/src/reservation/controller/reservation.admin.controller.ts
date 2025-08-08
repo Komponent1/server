@@ -159,4 +159,20 @@ export class AdminController {
       throw new Error(`Failed to create staff: ${error.message}`);
     }
   }
+  @Delete('staff/:id')
+  async deleteStaff(@Param('id') id: string): Promise<void> {
+    try {
+      await this.staffService.deleteStaff(id);
+    } catch (error) {
+      throw new Error(`Failed to delete staff: ${error.message}`);
+    }
+  }
+  @Delete('nail/:id')
+  async deleteNail(@Param('id') id: string): Promise<void> {
+    try {
+      await this.nailService.deleteNail(id);
+    } catch (error) {
+      throw new Error(`Failed to delete nail: ${error.message}`);
+    }
+  }
 }
