@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from './config/config.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from './config/config.service';
-import { GameModule } from './game/game.module';
 import { AppController } from './app.controller';
+import { ReservationModule } from './reservation/reservation.module';
 
 @Module({
   imports: [
@@ -15,7 +15,7 @@ import { AppController } from './app.controller';
       },
       inject: [ConfigService],
     }),
-    GameModule,
+    ReservationModule,
   ],
   controllers: [AppController],
 })

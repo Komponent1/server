@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -24,9 +25,15 @@ async function bootstrap() {
    */
 
   /**
-   *  2. API 문서화 적용
-   * EX> Swagger, ReDoc
+   * API 문서화 적용
    */
+  const config = new DocumentBuilder()
+    .setTitle('API 문서')
+    .setDescription('API 설명서입니다.')
+    .setVersion('1.0')
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api-docs', app, document);
 
   await app.listen(process.env.PORT ?? 3000);
 }
