@@ -20,13 +20,34 @@ export class AdminController {
       throw new Error(`Failed to fetch reservations: ${error.message}`);
     }
   }
-  @Get('reservations/month/:month')
-  async getReservationsByMonth(@Param('month') month: string): Promise<Reservation[]> {
+  @Get('reservations/month/:date')
+  async getReservationsByMonth(@Param('date') raw_date: string): Promise<Reservation[]> {
     try {
-      const reservations = await this.reservationService.getAllReservations();
-      return reservations.filter(reservation => new Date(reservation.date).getMonth() + 1 === parseInt(month, 10));
+      const date = new Date(raw_date);
+      const reservations = await this.reservationService.getReservationsByMonth(date);
+      return reservations;
     } catch (error) {
-      throw new Error(`Failed to fetch reservations for month ${month}: ${error.message}`);
+      throw new Error(`Failed to fetch reservations for month: ${error.message}`);
+    }
+  }
+  @Get('reservations/week/:date')
+  async getReservationsByWeek(@Param('date') raw_date: string): Promise<Reservation[]> {
+    try {
+      const date = new Date(raw_date);
+      const reservations = await this.reservationService.getReservationsByWeek(date);
+      return reservations;
+    } catch (error) {
+      throw new Error(`Failed to fetch reservations for week: ${error.message}`);
+    }
+  }
+  @Get('reservations/date/:date')
+  async getReservationsByDate(@Param('date') raw_date: string): Promise<Reservation[]> {
+    try {
+      const date = new Date(raw_date);
+      const reservations = await this.reservationService.getReservationsByDate(date);
+      return reservations;
+    } catch (error) {
+      throw new Error(`Failed to fetch reservations for date: ${error.message}`);
     }
   }
 
@@ -65,10 +86,11 @@ export class AdminController {
   @Post('reservation')
   async createReservation(@Body() reservationData: CreateReservationRequest): Promise<void> {
     try {
-      const reservation = Reservation.from(reservationData);
-      reservation.date = new Date(reservationData.date).toString();
-      reservation.createAt = new Date().toString();
-      reservation.phone = reservationData.phone;
+      const reservation = Reservation.from({
+        ...reservationData,
+        date: new Date(reservationData.date),
+        createAt: new Date(),
+      });
 
       await this.reservationService.createReservation(reservation);
     } catch (error) {

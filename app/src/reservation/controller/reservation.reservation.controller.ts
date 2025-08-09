@@ -41,10 +41,11 @@ export class ReservationController {
   @Post()
   async createReservation(@Body() reservationData: CreateReservationRequest): Promise<void> {
     try {
-      const reservation = Reservation.from(reservationData);
-      reservation.date = new Date(reservationData.date).toString();
-      reservation.createAt = new Date().toString();
-      reservation.phone = reservationData.phone;
+      const reservation = Reservation.from({
+        ...reservationData,
+        date: new Date(reservationData.date),
+        createAt: new Date(),
+      });
 
       await this.reservationService.createReservation(reservation);
     } catch (error) {

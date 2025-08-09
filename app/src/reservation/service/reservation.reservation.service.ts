@@ -1,18 +1,18 @@
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
 import { Reservation } from '../entity';
+import { ReservationNotFoundError, UnknownError } from '../exception/reservation.exception';
 
 @Injectable()
 export class ReservationService {
   constructor(@InjectRepository(Reservation) private reservationRepository: Repository<Reservation>) {}
 
-  async createReservation(param: Partial<Reservation>): Promise<void> {
-    const reservation = Reservation.from(param);
+  async createReservation(reservation: Reservation): Promise<void> {
     try {
-      await this.reservationRepository.save(reservation);
+      const res = await this.reservationRepository.save(reservation);
     } catch (e) {
-      throw new Error(e);
+      throw new UnknownError(`Failed to createReservation: ${e.message}`);
     }
   }
 
@@ -23,7 +23,52 @@ export class ReservationService {
       });
       return reservations;
     } catch (e) {
-      throw new Error(e);
+      throw new UnknownError(`Failed to getAllReservations: ${e.message}`);
+    }
+  }
+  async getReservationsByMonth(date: Date): Promise<Reservation[]> {
+    try {
+      const reservations = await this.reservationRepository.find({
+        relations: ['staff', 'nail'],
+        where: {
+          date: Between(
+            new Date(date.getFullYear(), date.getMonth(), 1),
+            new Date(date.getFullYear(), date.getMonth() + 1, 0)
+          ),
+        },
+      });
+      return reservations;
+    } catch (e) {
+      throw new UnknownError(`Failed to getReservationsByMonth: ${e.message}`);
+    }
+  }
+  async getReservationsByWeek(date: Date): Promise<Reservation[]> {
+    try {
+      const startOfWeek = new Date(date);
+      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(endOfWeek.getDate() + 6);
+
+      const reservations = await this.reservationRepository.find({
+        relations: ['staff', 'nail'],
+        where: {
+          date: Between(startOfWeek, endOfWeek),
+        },
+      });
+      return reservations;
+    } catch (e) {
+      throw new UnknownError(`Failed to getReservationsByWeek: ${e.message}`);
+    }
+  }
+  async getReservationsByDate(date: Date): Promise<Reservation[]> {
+    try {
+      const reservations = await this.reservationRepository.find({
+        relations: ['staff', 'nail'],
+        where: { date: date },
+      });
+      return reservations;
+    } catch (e) {
+      throw new UnknownError(`Failed to getReservationsByDate: ${e.message}`);
     }
   }
 
@@ -34,11 +79,11 @@ export class ReservationService {
         relations: ['staff', 'nail'],
       });
       if (!reservation) {
-        throw new Error(`Reservation with id ${id} not found`);
+        throw new ReservationNotFoundError();
       }
       return reservation;
     } catch (e) {
-      throw new Error(e);
+      throw new UnknownError(`Failed to getReservationById: ${e.message}`);
     }
   }
   async getReservationsByCustomerPhone(phone: string): Promise<Reservation[]> {
@@ -49,7 +94,7 @@ export class ReservationService {
       });
       return reservations;
     } catch (e) {
-      throw new Error(e);
+      throw new UnknownError(`Failed to getReservationsByCustomerPhone: ${e.message}`);
     }
   }
   async getReservationsByStaffId(staffId: string): Promise<Reservation[]> {
@@ -60,7 +105,7 @@ export class ReservationService {
       });
       return reservations;
     } catch (e) {
-      throw new Error(e);
+      throw new UnknownError(`Failed to getReservationsByStaffId: ${e.message}`);
     }
   }
 
@@ -70,7 +115,7 @@ export class ReservationService {
       Object.assign(reservation, param);
       await this.reservationRepository.save(reservation);
     } catch (e) {
-      throw new Error(e);
+      throw new UnknownError(`Failed to updateReservation: ${e.message}`);
     }
   }
 
@@ -79,7 +124,7 @@ export class ReservationService {
       const reservation = await this.getReservationById(id);
       await this.reservationRepository.remove(reservation);
     } catch (e) {
-      throw new Error(e);
+      throw new UnknownError(`Failed to deleteReservation: ${e.message}`);
     }
   }
 }

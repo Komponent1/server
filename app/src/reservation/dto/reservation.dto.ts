@@ -1,8 +1,9 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class ReservationsResponse {
   @IsString() @IsNotEmpty() id: string;
-  @IsString() @IsNotEmpty() date: string;
+  @IsString() @IsNotEmpty() date: Date;
   @IsNumber() @IsNotEmpty() phone: number;
   @IsString() @IsNotEmpty() name: string;
   @IsString() @IsNotEmpty() staffName: string;
@@ -10,9 +11,9 @@ export class ReservationsResponse {
   @IsString() @IsNotEmpty() price: string;
 }
 export class CreateReservationRequest {
-  @IsString() @IsNotEmpty() date: string;
-  @IsString() @IsNotEmpty() phone: string;
-  @IsString() @IsNotEmpty() name: string;
-  @IsString() @IsNotEmpty() staffId: string;
-  @IsString() @IsNotEmpty() nailId: string;
+  @ApiProperty() @IsString() @IsNotEmpty() date: string;
+  @ApiProperty() @IsString() @IsNotEmpty() phone: string;
+  @ApiProperty() @IsString() @IsNotEmpty() name: string;
+  @ApiProperty() @IsString() @IsNotEmpty() staffId: string;
+  @ApiProperty() @IsString() @IsNotEmpty() nailId: string;
 }
