@@ -31,7 +31,7 @@ export class ReservationService {
       const reservations = await this.reservationRepository.find({
         relations: ['staff', 'nail'],
         where: {
-          date: Between(
+          startTime: Between(
             new Date(date.getFullYear(), date.getMonth(), 1),
             new Date(date.getFullYear(), date.getMonth() + 1, 0)
           ),
@@ -52,7 +52,7 @@ export class ReservationService {
       const reservations = await this.reservationRepository.find({
         relations: ['staff', 'nail'],
         where: {
-          date: Between(startOfWeek, endOfWeek),
+          startTime: Between(startOfWeek, endOfWeek),
         },
       });
       return reservations;
@@ -64,7 +64,7 @@ export class ReservationService {
     try {
       const reservations = await this.reservationRepository.find({
         relations: ['staff', 'nail'],
-        where: { date: date },
+        where: { startTime: Between(date, new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1)) },
       });
       return reservations;
     } catch (e) {

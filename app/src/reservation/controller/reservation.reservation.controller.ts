@@ -43,7 +43,8 @@ export class ReservationController {
     try {
       const reservation = Reservation.from({
         ...reservationData,
-        date: new Date(reservationData.date),
+        startTime: new Date(reservationData.startTime),
+        endTime: new Date(reservationData.endTime),
         createAt: new Date(),
       });
 

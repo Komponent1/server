@@ -10,6 +10,9 @@ export class Nail extends BaseEntity {
 
   @Column()
   price: number;
+  
+  @Column()
+  spendMinute: number;
 
   static from(param: Partial<Nail>): Nail {
     const nail = new Nail();

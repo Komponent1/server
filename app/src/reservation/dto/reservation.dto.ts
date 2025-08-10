@@ -11,7 +11,8 @@ export class ReservationsResponse {
   @IsString() @IsNotEmpty() price: string;
 }
 export class CreateReservationRequest {
-  @ApiProperty() @IsString() @IsNotEmpty() date: string;
+  @ApiProperty() @IsString() @IsNotEmpty() startTime: string;
+  @ApiProperty() @IsString() @IsNotEmpty() endTime: string;
   @ApiProperty() @IsString() @IsNotEmpty() phone: string;
   @ApiProperty() @IsString() @IsNotEmpty() name: string;
   @ApiProperty() @IsString() @IsNotEmpty() staffId: string;
