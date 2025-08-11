@@ -7,13 +7,13 @@ export class Reservation extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('date')
+  @Column('datetime')
   startTime: Date;
 
-  @Column('date')
+  @Column('datetime')
   endTime: Date;
 
-  @Column('date')
+  @Column('datetime')
   createAt: Date;
 
   @Column()

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
 import { Reservation } from '../entity';
 import { ReservationNotFoundError, UnknownError } from '../exception/reservation.exception';
+import { KOR_TIME_OFFSET } from '../reservation.constant';
 
 @Injectable()
 export class ReservationService {
@@ -62,9 +63,12 @@ export class ReservationService {
   }
   async getReservationsByDate(date: Date): Promise<Reservation[]> {
     try {
+      const korStartTime = new Date(date.getTime() - KOR_TIME_OFFSET);
+      const korEndTime = new Date(date.getTime() - KOR_TIME_OFFSET + 24 * 60 * 60 * 1000);
+
       const reservations = await this.reservationRepository.find({
         relations: ['staff', 'nail'],
-        where: { startTime: Between(date, new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1)) },
+        where: { startTime: Between(korStartTime, korEndTime) },
       });
       return reservations;
     } catch (e) {

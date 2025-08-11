@@ -44,7 +44,8 @@ export class AdminController {
   async getReservationsByDate(@Param('date') raw_date: string): Promise<Reservation[]> {
     try {
       const date = new Date(raw_date);
-      const reservations = await this.reservationService.getReservationsByDate(date);
+      const searchDay = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+      const reservations = await this.reservationService.getReservationsByDate(searchDay);
       return reservations;
     } catch (error) {
       throw new Error(`Failed to fetch reservations for date: ${error.message}`);

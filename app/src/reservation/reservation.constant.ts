@@ -1,0 +1,1 @@
+export const KOR_TIME_OFFSET = 9 * 60 * 60 * 1000; // 9 hours in milliseconds
