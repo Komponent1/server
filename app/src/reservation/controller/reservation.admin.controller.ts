@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import {} from '../exception/reservation.exception';
 import { NailService, StaffService, ReservationService } from '../service';
 import { Reservation, Nail, Staff } from '../entity';
 import { CreateReservationRequest } from '../dto/reservation.dto';
+import { AuthGuard } from '../util/authGuard';
 
+@UseGuards(AuthGuard)
 @Controller('reservation/admin')
 export class AdminController {
   constructor(
