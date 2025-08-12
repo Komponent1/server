@@ -24,6 +24,10 @@ export class PostOwnerReq {
   @ApiProperty() @IsString() @IsNotEmpty() pw: string;
   @ApiProperty() @IsString() @IsNotEmpty() name: string;
 }
+export class PostLoginReq {
+  @ApiProperty() @IsString() @IsNotEmpty() uid: string;
+  @ApiProperty() @IsString() @IsNotEmpty() pw: string;
+}
 export class AuthReq {
   @IsObject() owner: Owner;
 }

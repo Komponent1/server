@@ -16,9 +16,9 @@ export class Nail extends BaseEntity {
   spendMinute: number;
 
   @Column()
-  ownerId: string;
+  ownerUid: string;
   @ManyToOne(() => Owner, owner => owner)
-  @JoinColumn({ name: 'ownerId' })
+  @JoinColumn({ name: 'ownerUid' })
   owner: Owner;
 
   static from(param: Partial<Nail>): Nail {

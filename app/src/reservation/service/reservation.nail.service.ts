@@ -16,19 +16,19 @@ export class NailService {
     }
   }
 
-  async getAllNails(): Promise<Nail[]> {
+  async getAllNails({ownerUid}: {ownerUid: string}): Promise<Nail[]> {
     try {
-      return await this.nailRepository.find();
+      return await this.nailRepository.find({ where: { ownerUid } });
     } catch (e) {
       throw new Error(e);
     }
   }
 
-  async getNailById(id: string): Promise<Nail> {
+  async getNailById({nailId}: {nailId: string}): Promise<Nail> {
     try {
-      const nail = await this.nailRepository.findOneBy({ id });
+      const nail = await this.nailRepository.findOneBy({ id: nailId });
       if (!nail) {
-        throw new Error(`Nail with id ${id} not found`);
+        throw new Error(`Nail with id ${nailId} not found`);
       }
       return nail;
     } catch (e) {
@@ -36,11 +36,11 @@ export class NailService {
     }
   }
 
-  async updateNail(id: string, param: Partial<Nail>): Promise<void> {
+  async updateNail({nailId}: {nailId: string}, param: Partial<Nail>): Promise<void> {
     try {
-      const nail = await this.nailRepository.findOneBy({ id });
+      const nail = await this.nailRepository.findOneBy({ id: nailId });
       if (!nail) {
-        throw new Error(`Nail with id ${id} not found`);
+        throw new Error(`Nail with id ${nailId} not found`);
       }
       Object.assign(nail, param);
       await this.nailRepository.save(nail);
@@ -49,11 +49,11 @@ export class NailService {
     }
   }
 
-  async deleteNail(id: string): Promise<void> {
+  async deleteNail({nailId}: {nailId: string}): Promise<void> {
     try {
-      const nail = await this.nailRepository.findOneBy({ id });
+      const nail = await this.nailRepository.findOneBy({ id: nailId });
       if (!nail) {
-        throw new Error(`Nail with id ${id} not found`);
+        throw new Error(`Nail with id ${nailId} not found`);
       }
       await this.nailRepository.remove(nail);
     } catch (e) {

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, Request, UseGuards } from '@nestjs/common';
 import {} from '../exception/reservation.exception';
 import { NailService, StaffService, ReservationService } from '../service';
 import { Reservation, Nail, Staff } from '../entity';
@@ -17,8 +17,8 @@ export class AdminController {
   @Get('reservations')
   async getReservations(@Request() req: AuthReq): Promise<Reservation[]> {
     try {
-      const ownerId = req.owner.id;
-      return this.reservationService.getAllReservations({ownerId});
+      const ownerUid = req.owner.uid;
+      return this.reservationService.getAllReservations({ownerUid});
     } catch (error) {
       throw new Error(`Failed to fetch reservations: ${error.message}`);
     }
@@ -28,7 +28,7 @@ export class AdminController {
     try {
       const date = new Date(raw_date);
       const reservations = await this.reservationService.getReservationsByMonth({
-        ownerId: req.owner.id,
+        ownerUid: req.owner.uid,
         date,
       });
       return reservations;
@@ -41,7 +41,7 @@ export class AdminController {
     try {
       const date = new Date(raw_date);
       const reservations = await this.reservationService.getReservationsByWeek({
-        ownerId: req.owner.id,
+        ownerUid: req.owner.uid,
         date,
       });
       return reservations;
@@ -55,7 +55,7 @@ export class AdminController {
       const date = new Date(raw_date);
       const searchDay = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
       const reservations = await this.reservationService.getReservationsByDate({
-        ownerId: req.owner.id,
+        ownerUid: req.owner.uid,
         date: searchDay,
       });
       return reservations;
@@ -83,7 +83,7 @@ export class AdminController {
   async getCustomerReservations(@Request() req: AuthReq, @Param('phone') phone: string): Promise<Reservation[]> {
     try {
       const reservations = await this.reservationService.getReservationsByCustomerPhoneWithOnwer({
-        ownerId: req.owner.id,
+        ownerUid: req.owner.uid,
         phone,
       });
       return reservations;
@@ -108,7 +108,7 @@ export class AdminController {
     try {
       const reservation = Reservation.from({
         ...reservationData,
-        ownerId: req.owner.id,
+        ownerUid: req.owner.uid,
         startTime: new Date(reservationData.startTime),
         endTime: new Date(reservationData.endTime),
         createAt: new Date(),
@@ -144,17 +144,19 @@ export class AdminController {
     }
   }
   @Get('nails')
-  async getAllNails(): Promise<Nail[]> {
+  async getAllNails(@Request() req: AuthReq): Promise<Nail[]> {
     try {
-      return this.nailService.getAllNails();
+      const ownerUid = req.owner.uid;
+      return this.nailService.getAllNails({ ownerUid });
     } catch (error) {
       throw new Error(`Failed to fetch nails: ${error.message}`);
     }
   }
   @Get('staffs')
-  async getAllStaffs(): Promise<Staff[]> {
+  async getAllStaffs(@Request() req: AuthReq): Promise<Staff[]> {
     try {
-      return this.staffService.getAllStaffs();
+      const ownerUid = req.owner.uid;
+      return this.staffService.getAllStaffs({ ownerUid });
     } catch (error) {
       throw new Error(`Failed to fetch staff: ${error.message}`);
     }
@@ -162,7 +164,7 @@ export class AdminController {
   @Get('nail/:id')
   async getNailById(@Param('id') id: string): Promise<Nail> {
     try {
-      return this.nailService.getNailById(id);
+      return this.nailService.getNailById({nailId: id});
     } catch (error) {
       throw new Error(`Failed to fetch nail: ${error.message}`);
     }
@@ -170,7 +172,7 @@ export class AdminController {
   @Get('staff/:id')
   async getStaffById(@Param('id') id: string): Promise<Staff> {
     try {
-      return this.staffService.getStaffById(id);
+      return this.staffService.getStaffById({staffId: id});
     } catch (error) {
       throw new Error(`Failed to fetch staff: ${error.message}`);
     }
@@ -178,7 +180,7 @@ export class AdminController {
   @Patch('nail/:id')
   async updateNail(@Param('id') id: string, @Body() nailData: Partial<Nail>): Promise<void> {
     try {
-      await this.nailService.updateNail(id, nailData);
+      await this.nailService.updateNail({ nailId: id }, nailData);
     } catch (error) {
       throw new Error(`Failed to update nail: ${error.message}`);
     }
@@ -186,25 +188,27 @@ export class AdminController {
   @Patch('staff/:id')
   async updateStaff(@Param('id') id: string, @Body() staffData: Partial<Staff>): Promise<void> {
     try {
-      await this.staffService.updateStaff(id, staffData);
+      await this.staffService.updateStaff({ staffId: id }, staffData);
     } catch (error) {
       throw new Error(`Failed to update staff: ${error.message}`);
     }
   }
 
   @Post('nail')
-  async createNail(@Body() nailData: Partial<Nail>): Promise<Nail> {
+  async createNail(@Request() req: AuthReq, @Body() nailData: Partial<Nail>): Promise<Nail> {
     try {
-      return this.nailService.createNail(nailData);
+      const ownerUid = req.owner.uid;
+      return this.nailService.createNail({ ...nailData, ownerUid });
     } catch (error) {
       throw new Error(`Failed to create nail: ${error.message}`);
     }
   }
 
   @Post('staff')
-  async createStaff(@Body() staffData: Partial<Staff>): Promise<Staff> {
+  async createStaff(@Request() req: AuthReq, @Body() staffData: Partial<Staff>): Promise<Staff> {
     try {
-      return this.staffService.createStaff(staffData);
+      const ownerUid = req.owner.uid;
+      return this.staffService.createStaff({ ...staffData, ownerUid });
     } catch (error) {
       throw new Error(`Failed to create staff: ${error.message}`);
     }
@@ -212,7 +216,7 @@ export class AdminController {
   @Delete('staff/:id')
   async deleteStaff(@Param('id') id: string): Promise<void> {
     try {
-      await this.staffService.deleteStaff(id);
+      await this.staffService.deleteStaff({ staffId: id });
     } catch (error) {
       throw new Error(`Failed to delete staff: ${error.message}`);
     }
@@ -220,7 +224,7 @@ export class AdminController {
   @Delete('nail/:id')
   async deleteNail(@Param('id') id: string): Promise<void> {
     try {
-      await this.nailService.deleteNail(id);
+      await this.nailService.deleteNail({nailId: id});
     } catch (error) {
       throw new Error(`Failed to delete nail: ${error.message}`);
     }

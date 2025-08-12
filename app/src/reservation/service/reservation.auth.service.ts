@@ -14,18 +14,18 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async createOwner(id: string, name: string, pw: string): Promise<Owner> {
+  async createOwner(uid: string, name: string, pw: string): Promise<Owner> {
     const owner = new Owner();
-    owner.id = id;
+    owner.uid = uid;
     owner.name = name;
     owner.password = await encrypt(pw);
     const savedOwner = await this.ownerRepository.save(owner);
     return savedOwner;
   }
 
-  async login(id: string, password: string): Promise<{ access_token: string, name: string }> {
+  async login(uid: string, password: string): Promise<{ access_token: string, name: string }> {
     try {
-      const owner = await this.ownerRepository.findOne({ where: { id } });
+      const owner = await this.ownerRepository.findOne({ where: { uid } });
       if (owner && (await compare(password, owner.password))) {
         const token = await this.generateToken(owner);
         return { access_token: token, name: owner.name };

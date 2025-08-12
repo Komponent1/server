@@ -16,19 +16,19 @@ export class StaffService {
     }
   }
 
-  async getAllStaffs(): Promise<Staff[]> {
+  async getAllStaffs({ownerUid}: {ownerUid: string}): Promise<Staff[]> {
     try {
-      return await this.staffRepository.find();
+      return await this.staffRepository.find({ where: { ownerUid } });
     } catch (e) {
       throw new Error(e);
     }
   }
 
-  async getStaffById(id: string): Promise<Staff> {
+  async getStaffById({staffId}: {staffId: string}): Promise<Staff> {
     try {
-      const staff = await this.staffRepository.findOneBy({ id });
+      const staff = await this.staffRepository.findOneBy({ id: staffId });
       if (!staff) {
-        throw new Error(`Staff with id ${id} not found`);
+        throw new Error(`Staff with id ${staffId} not found`);
       }
       return staff;
     } catch (e) {
@@ -36,9 +36,9 @@ export class StaffService {
     }
   }
 
-  async updateStaff(id: string, param: Partial<Staff>): Promise<void> {
+  async updateStaff({ staffId }: { staffId: string }, param: Partial<Staff>): Promise<void> {
     try {
-      const staff = await this.getStaffById(id);
+      const staff = await this.getStaffById({ staffId });
       Object.assign(staff, param);
       await this.staffRepository.save(staff);
     } catch (e) {
@@ -46,11 +46,11 @@ export class StaffService {
     }
   }
 
-  async deleteStaff(id: string): Promise<void> {
+  async deleteStaff({ staffId }: { staffId: string }): Promise<void> {
     try {
-      const staff = await this.staffRepository.findOneBy({ id });
+      const staff = await this.staffRepository.findOneBy({ id: staffId });
       if (!staff) {
-        throw new Error(`Staff with id ${id} not found`);
+        throw new Error(`Staff with id ${staffId} not found`);
       }
       await this.staffRepository.remove(staff);
     } catch (e) {

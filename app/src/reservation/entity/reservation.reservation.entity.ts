@@ -37,9 +37,9 @@ export class Reservation extends BaseEntity {
   nail: Nail;
   
   @Column()
-  ownerId: string;
+  ownerUid: string;
   @ManyToOne(() => Owner, owner => owner)
-  @JoinColumn({ name: 'ownerId' })
+  @JoinColumn({ name: 'ownerUid' })
   owner: Owner;
 
   static from(param: Partial<Reservation>): Reservation {
