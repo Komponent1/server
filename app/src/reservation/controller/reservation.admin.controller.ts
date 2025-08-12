@@ -1,8 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
 import {} from '../exception/reservation.exception';
 import { NailService, StaffService, ReservationService } from '../service';
 import { Reservation, Nail, Staff } from '../entity';
-import { CreateReservationRequest } from '../dto/reservation.dto';
+import { AuthReq, PostReservationReq } from '../dto/reservation.dto';
 import { AuthGuard } from '../util/authGuard';
 
 @UseGuards(AuthGuard)
@@ -15,39 +15,49 @@ export class AdminController {
   ) {}
 
   @Get('reservations')
-  async getReservations(): Promise<Reservation[]> {
+  async getReservations(@Request() req: AuthReq): Promise<Reservation[]> {
     try {
-      return this.reservationService.getAllReservations();
+      const ownerId = req.owner.id;
+      return this.reservationService.getAllReservations({ownerId});
     } catch (error) {
       throw new Error(`Failed to fetch reservations: ${error.message}`);
     }
   }
   @Get('reservations/month/:date')
-  async getReservationsByMonth(@Param('date') raw_date: string): Promise<Reservation[]> {
+  async getReservationsByMonth(@Request() req: AuthReq, @Param('date') raw_date: string): Promise<Reservation[]> {
     try {
       const date = new Date(raw_date);
-      const reservations = await this.reservationService.getReservationsByMonth(date);
+      const reservations = await this.reservationService.getReservationsByMonth({
+        ownerId: req.owner.id,
+        date,
+      });
       return reservations;
     } catch (error) {
       throw new Error(`Failed to fetch reservations for month: ${error.message}`);
     }
   }
   @Get('reservations/week/:date')
-  async getReservationsByWeek(@Param('date') raw_date: string): Promise<Reservation[]> {
+  async getReservationsByWeek(@Request() req: AuthReq, @Param('date') raw_date: string): Promise<Reservation[]> {
     try {
       const date = new Date(raw_date);
-      const reservations = await this.reservationService.getReservationsByWeek(date);
+      const reservations = await this.reservationService.getReservationsByWeek({
+        ownerId: req.owner.id,
+        date,
+      });
       return reservations;
     } catch (error) {
       throw new Error(`Failed to fetch reservations for week: ${error.message}`);
     }
   }
   @Get('reservations/date/:date')
-  async getReservationsByDate(@Param('date') raw_date: string): Promise<Reservation[]> {
+  async getReservationsByDate(@Request() req: AuthReq, @Param('date') raw_date: string): Promise<Reservation[]> {
     try {
       const date = new Date(raw_date);
       const searchDay = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-      const reservations = await this.reservationService.getReservationsByDate(searchDay);
+      const reservations = await this.reservationService.getReservationsByDate({
+        ownerId: req.owner.id,
+        date: searchDay,
+      });
       return reservations;
     } catch (error) {
       throw new Error(`Failed to fetch reservations for date: ${error.message}`);
@@ -57,7 +67,9 @@ export class AdminController {
   @Get('reservation/:id')
   async getReservationById(@Param('id') id: string): Promise<Reservation> {
     try {
-      const reservation = await this.reservationService.getReservationById(id);
+      const reservation = await this.reservationService.getReservationById({
+        reservationId: id,
+      });
       if (!reservation) {
         throw new Error(`Reservation with id ${id} not found`);
       }
@@ -67,11 +79,14 @@ export class AdminController {
     }
   }
 
-  @Get('reservations/customer/:id')
-  async getCustomerReservations(@Param('id') id: string): Promise<Reservation[]> {
+  @Get('reservations/customer/:phone')
+  async getCustomerReservations(@Request() req: AuthReq, @Param('phone') phone: string): Promise<Reservation[]> {
     try {
-      const reservations = await this.reservationService.getAllReservations();
-      return reservations.filter(reservation => reservation.id === id);
+      const reservations = await this.reservationService.getReservationsByCustomerPhoneWithOnwer({
+        ownerId: req.owner.id,
+        phone,
+      });
+      return reservations;
     } catch (error) {
       throw new Error(`Failed to fetch customer reservations: ${error.message}`);
     }
@@ -79,7 +94,9 @@ export class AdminController {
   @Get('reservations/staff/:id')
   async getStaffReservations(@Param('id') id: string): Promise<Reservation[]> {
     try {
-      const reservations = await this.reservationService.getReservationsByStaffId(id);
+      const reservations = await this.reservationService.getReservationsByStaffId({
+        staffId: id,
+      });
       return reservations;
     } catch (error) {
       throw new Error(`Failed to fetch staff reservations: ${error.message}`);
@@ -87,10 +104,11 @@ export class AdminController {
   }
 
   @Post('reservation')
-  async createReservation(@Body() reservationData: CreateReservationRequest): Promise<void> {
+  async createReservation(@Request() req: AuthReq, @Body() reservationData: PostReservationReq): Promise<void> {
     try {
       const reservation = Reservation.from({
         ...reservationData,
+        ownerId: req.owner.id,
         startTime: new Date(reservationData.startTime),
         endTime: new Date(reservationData.endTime),
         createAt: new Date(),
@@ -105,7 +123,11 @@ export class AdminController {
   @Patch('reservation/:id')
   async updateReservation(@Param('id') id: string, @Body() reservationData: Partial<Reservation>): Promise<void> {
     try {
-      await this.reservationService.updateReservation(id, reservationData);
+      await this.reservationService.updateReservationById({
+        reservationId: id,
+      },
+      reservationData,
+    );
     } catch (err) {
       throw new Error(`Failed to update reservation: ${err.message}`);
     }
@@ -114,7 +136,9 @@ export class AdminController {
   @Delete('reservation/:id')
   async deleteReservation(@Param('id') id: string): Promise<void> {
     try {
-      await this.reservationService.deleteReservation(id);
+      await this.reservationService.deleteReservation({
+        reservationId: id,
+      });
     } catch (err) {
       throw new Error(`Failed to delete reservation: ${err.message}`);
     }

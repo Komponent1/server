@@ -1,4 +1,5 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { BaseEntity, Column, Entity, JoinColumn, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Owner } from './reservation.owner.entity';
 
 @Entity('nail')
 export class Nail extends BaseEntity {
@@ -13,6 +14,12 @@ export class Nail extends BaseEntity {
   
   @Column()
   spendMinute: number;
+
+  @Column()
+  ownerId: string;
+  @ManyToOne(() => Owner, owner => owner)
+  @JoinColumn({ name: 'ownerId' })
+  owner: Owner;
 
   static from(param: Partial<Nail>): Nail {
     const nail = new Nail();

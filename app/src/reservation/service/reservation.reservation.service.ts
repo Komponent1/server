@@ -17,21 +17,23 @@ export class ReservationService {
     }
   }
 
-  async getAllReservations(): Promise<Reservation[]> {
+  async getAllReservations({ownerId}: {ownerId: string}): Promise<Reservation[]> {
     try {
       const reservations = await this.reservationRepository.find({
         relations: ['staff', 'nail'],
+        where: { ownerId },
       });
       return reservations;
     } catch (e) {
       throw new UnknownError(`Failed to getAllReservations: ${e.message}`);
     }
   }
-  async getReservationsByMonth(date: Date): Promise<Reservation[]> {
+  async getReservationsByMonth({date, ownerId}: {date: Date, ownerId: string}): Promise<Reservation[]> {
     try {
       const reservations = await this.reservationRepository.find({
         relations: ['staff', 'nail'],
         where: {
+          ownerId,
           startTime: Between(
             new Date(date.getFullYear(), date.getMonth(), 1),
             new Date(date.getFullYear(), date.getMonth() + 1, 0)
@@ -43,7 +45,7 @@ export class ReservationService {
       throw new UnknownError(`Failed to getReservationsByMonth: ${e.message}`);
     }
   }
-  async getReservationsByWeek(date: Date): Promise<Reservation[]> {
+  async getReservationsByWeek({date, ownerId}: {date: Date, ownerId: string}): Promise<Reservation[]> {
     try {
       const startOfWeek = new Date(date);
       startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
@@ -54,6 +56,7 @@ export class ReservationService {
         relations: ['staff', 'nail'],
         where: {
           startTime: Between(startOfWeek, endOfWeek),
+          ownerId,
         },
       });
       return reservations;
@@ -61,14 +64,14 @@ export class ReservationService {
       throw new UnknownError(`Failed to getReservationsByWeek: ${e.message}`);
     }
   }
-  async getReservationsByDate(date: Date): Promise<Reservation[]> {
+  async getReservationsByDate({date, ownerId}: {date: Date, ownerId: string}): Promise<Reservation[]> {
     try {
       const korStartTime = new Date(date.getTime() - KOR_TIME_OFFSET);
       const korEndTime = new Date(date.getTime() - KOR_TIME_OFFSET + 24 * 60 * 60 * 1000);
 
       const reservations = await this.reservationRepository.find({
         relations: ['staff', 'nail'],
-        where: { startTime: Between(korStartTime, korEndTime) },
+        where: { startTime: Between(korStartTime, korEndTime), ownerId },
       });
       return reservations;
     } catch (e) {
@@ -76,10 +79,10 @@ export class ReservationService {
     }
   }
 
-  async getReservationById(id: string): Promise<Reservation> {
+  async getReservationById({reservationId}: {reservationId: string}): Promise<Reservation> {
     try {
       const reservation = await this.reservationRepository.findOne({
-        where: { id },
+        where: { id: reservationId },
         relations: ['staff', 'nail'],
       });
       if (!reservation) {
@@ -90,7 +93,18 @@ export class ReservationService {
       throw new UnknownError(`Failed to getReservationById: ${e.message}`);
     }
   }
-  async getReservationsByCustomerPhone(phone: string): Promise<Reservation[]> {
+  async getReservationsByCustomerPhoneWithOnwer({ownerId, phone}: {ownerId: string, phone: string}): Promise<Reservation[]> {
+    try {
+      const reservations = await this.reservationRepository.find({
+        where: { phone: phone, ownerId: ownerId },
+        relations: ['staff', 'nail'],
+      });
+      return reservations;
+    } catch (e) {
+      throw new UnknownError(`Failed to getReservationsByCustomerPhone: ${e.message}`);
+    }
+  }
+  async getReservationsByCustomerPhone({phone}: {phone: string}): Promise<Reservation[]> {
     try {
       const reservations = await this.reservationRepository.find({
         where: { phone: phone },
@@ -101,7 +115,7 @@ export class ReservationService {
       throw new UnknownError(`Failed to getReservationsByCustomerPhone: ${e.message}`);
     }
   }
-  async getReservationsByStaffId(staffId: string): Promise<Reservation[]> {
+  async getReservationsByStaffId({staffId}: {staffId: string}): Promise<Reservation[]> {
     try {
       const reservations = await this.reservationRepository.find({
         where: { staff: { id: staffId } },
@@ -113,9 +127,9 @@ export class ReservationService {
     }
   }
 
-  async updateReservation(id: string, param: Partial<Reservation>): Promise<void> {
+  async updateReservationById({reservationId}: {reservationId: string}, param: Partial<Reservation>): Promise<void> {
     try {
-      const reservation = await this.getReservationById(id);
+      const reservation = await this.getReservationById({reservationId});
       Object.assign(reservation, param);
       await this.reservationRepository.save(reservation);
     } catch (e) {
@@ -123,9 +137,9 @@ export class ReservationService {
     }
   }
 
-  async deleteReservation(id: string): Promise<void> {
+  async deleteReservation({reservationId}: {reservationId: string}): Promise<void> {
     try {
-      const reservation = await this.getReservationById(id);
+      const reservation = await this.getReservationById({ reservationId});
       await this.reservationRepository.remove(reservation);
     } catch (e) {
       throw new UnknownError(`Failed to deleteReservation: ${e.message}`);

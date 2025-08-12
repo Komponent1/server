@@ -2,25 +2,18 @@ import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/commo
 import {} from '../exception/reservation.exception';
 import { ReservationService } from '../service';
 import { Reservation } from '../entity';
-import { CreateReservationRequest } from '../dto/reservation.dto';
+import { PostReservationReq } from '../dto/reservation.dto';
 
 @Controller('reservation')
 export class ReservationController {
   constructor(private readonly reservationService: ReservationService) {}
 
-  @Get()
-  async getReservations(): Promise<Reservation[]> {
-    try {
-      const reservations = await this.reservationService.getAllReservations();
-      return reservations;
-    } catch (error) {
-      throw new Error(`Failed to fetch reservations: ${error.message}`);
-    }
-  }
   @Get(':id')
   async getReservationById(@Param('id') id: string): Promise<Reservation> {
     try {
-      const reservation = await this.reservationService.getReservationById(id);
+      const reservation = await this.reservationService.getReservationById({
+        reservationId: id,
+      });
       if (!reservation) {
         throw new Error(`Reservation with id ${id} not found`);
       }
@@ -32,14 +25,16 @@ export class ReservationController {
   @Get('customer/:phone')
   async getCustomerReservations(@Param('phone') phone: string): Promise<Reservation[]> {
     try {
-      const reservations = await this.reservationService.getReservationsByCustomerPhone(phone);
+      const reservations = await this.reservationService.getReservationsByCustomerPhone({
+        phone,
+      });
       return reservations;
     } catch (error) {
       throw new Error(`Failed to fetch customer reservations: ${error.message}`);
     }
   }
   @Post()
-  async createReservation(@Body() reservationData: CreateReservationRequest): Promise<void> {
+  async createReservation(@Body() reservationData: PostReservationReq): Promise<void> {
     try {
       const reservation = Reservation.from({
         ...reservationData,
@@ -57,7 +52,11 @@ export class ReservationController {
   @Patch(':id')
   async updateReservation(@Param('id') id: string, @Body() reservationData: Partial<Reservation>): Promise<void> {
     try {
-      await this.reservationService.updateReservation(id, reservationData);
+      await this.reservationService.updateReservationById({
+        reservationId: id,
+      },
+      reservationData,
+    );
     } catch (err) {
       throw new Error(`Failed to update reservation: ${err.message}`);
     }
@@ -66,7 +65,9 @@ export class ReservationController {
   @Delete(':id')
   async deleteReservation(@Param('id') id: string): Promise<void> {
     try {
-      await this.reservationService.deleteReservation(id);
+      await this.reservationService.deleteReservation({
+        reservationId: id
+      });
     } catch (err) {
       throw new Error(`Failed to delete reservation: ${err.message}`);
     }

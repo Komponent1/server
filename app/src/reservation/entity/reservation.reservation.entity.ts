@@ -1,6 +1,7 @@
 import { BaseEntity, Column, Entity, JoinColumn, JoinTable, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Staff } from './reservation.staff.entity';
 import { Nail } from './reservation.nail.entity';
+import { Owner } from './reservation.owner.entity';
 
 @Entity('reservation')
 export class Reservation extends BaseEntity {
@@ -24,17 +25,22 @@ export class Reservation extends BaseEntity {
 
   @Column()
   staffId: string;
-
-  @Column()
-  nailId: string;
-
   @ManyToOne(() => Staff, staff => staff)
   @JoinColumn({ name: 'staffId' })
   staff: Staff;
 
+  
+  @Column()
+  nailId: string;
   @ManyToOne(() => Nail, nail => nail)
   @JoinColumn({ name: 'nailId' })
   nail: Nail;
+  
+  @Column()
+  ownerId: string;
+  @ManyToOne(() => Owner, owner => owner)
+  @JoinColumn({ name: 'ownerId' })
+  owner: Owner;
 
   static from(param: Partial<Reservation>): Reservation {
     const reservation = new Reservation();

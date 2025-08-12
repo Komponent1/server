@@ -1,4 +1,5 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Owner } from './reservation.owner.entity';
 
 @Entity('staff')
 export class Staff extends BaseEntity {
@@ -7,6 +8,12 @@ export class Staff extends BaseEntity {
 
   @Column()
   name: string;
+
+  @Column()
+  ownerId: string;
+  @ManyToOne(() => Owner, owner => owner)
+  @JoinColumn({ name: 'ownerId' })
+  owner: Owner;
 
   static from(param: Partial<Staff>): Staff {
     const staff = new Staff();
